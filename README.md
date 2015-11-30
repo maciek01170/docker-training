@@ -21,3 +21,47 @@ docker build -t data-wp .
 # sh to the running container
 docker exec -it <container_id> /bin/sh
 
+# Orchestrating...
+## Install crane
+bash -c "`curl -sL https://raw.githubusercontent.com/michaelsauter/crane/master/download.sh`" && sudo mv crane /usr/local/bin/crane
+
+## Configuration
+Create the following crane.yaml file in a new directory:
+``̀
+containers:
+   wp:
+      image: maciek01170/docker-training:wordpress
+      run:
+         volumes-from: ["data-wp"]
+         link:
+            - mysql-wp:mysql
+         publish: ["8080:80"]
+         detach: true
+
+   mysql-wp:
+      image: mysql
+      run:
+         volumes-from: ["data-wp"]
+         detach: true
+         env: ["MYSQL_ROOT_PASSWORD=mysecretpassword"]
+
+   data-wp:
+      image: maciek01170/docker-training:data
+      run:
+         detach: true
+         cmd: "tail -f /dev/null"
+
+groups:
+   default: ['data-wp', 'mysql-wp', 'wp']
+   data_db: ['data-wp', 'mysql-wp']
+   web: ['wp']
+`̀̀ `
+
+### Using
+crane lift
+crane status 
+... etc... 
+
+
+# Nginx
+
